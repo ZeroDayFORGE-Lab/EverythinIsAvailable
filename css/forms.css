@@ -1,0 +1,30 @@
+.filters {
+
+  display: flex;
+
+  gap: 20px;
+
+  padding: 20px;
+}
+
+input,
+select {
+
+  padding: 12px;
+
+  border-radius: 8px;
+
+  border: 1px solid #444;
+
+  background: #1a1a1a;
+
+  color: white;
+}
+
+input:focus,
+select:focus {
+
+  outline: none;
+
+  border-color: #4c7eff;
+}

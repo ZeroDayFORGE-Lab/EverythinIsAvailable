@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>ZerodayFORGE Security Hub</title>
+
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+
+  <style>
+
+    :root{
+      color-scheme: dark;
+      --bg:#0d1117;
+      --surface:#161b22;
+      --surface-soft:#111827;
+      --border:#30363d;
+      --text:#c9d1d9;
+      --muted:#8b949e;
+      --primary:#58a6ff;
+      --accent:#38bdf8;
+      --success:#238636;
+      --radius:18px;
+      --shadow:0 24px 60px rgba(0,0,0,.3);
+      --transition:.25s ease;
+    }
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    body{
+      min-height:100vh;
+      font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:radial-gradient(circle at top, rgba(88,166,255,.14), transparent 30%), var(--bg);
+      color:#f8fafc;
+      line-height:1.7;
+    }
+
+    button,
+    input,
+    select{
+      font:inherit;
+    }
+
+    button{
+      border:none;
+      background:none;
+      color:inherit;
+    }
+
+    .navbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:1rem;
+      padding:24px 28px;
+      background:rgba(22,27,34,.92);
+      border-bottom:1px solid rgba(255,255,255,.06);
+      backdrop-filter:blur(10px);
+    }
+
+    .logo{
+      font-size:1.25rem;
+      font-weight:700;
+      letter-spacing:.08em;
+      color:var(--primary);
+    }
+
+    .nav-links{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.75rem;
+    }
+
+    .nav-links button{
+      padding:10px 18px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      color:#f8fafc;
+      transition:transform var(--transition), background var(--transition), box-shadow var(--transition);
+    }
+
+    .nav-links button:hover,
+    .nav-links button:focus-visible{
+      background:rgba(88,166,255,.18);
+      transform:translateY(-1px);
+      outline:none;
+      box-shadow:0 0 0 3px rgba(88,166,255,.12);
+    }
+
+    .top-bar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:16px;
+      padding:22px 28px;
+      background:rgba(22,27,34,.9);
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+
+    .top-bar input,
+    .top-bar select{
+      width:100%;
+      max-width:320px;
+      min-width:180px;
+      padding:14px 16px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      transition:border-color var(--transition), background var(--transition);
+    }
+
+    .top-bar input:focus,
+    .top-bar select:focus{
+      outline:none;
+      border-color:rgba(88,166,255,.4);
+      background:rgba(255,255,255,.08);
+    }
+
+    #app{
+      padding:32px 28px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+      gap:24px;
+    }
+
+    .card{
+      background:rgba(17,22,34,.95);
+      border:1px solid rgba(88,166,255,.08);
+      border-radius:var(--radius);
+      padding:24px;
+      box-shadow:var(--shadow);
+      transition:transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(88,166,255,.2);
+      box-shadow:0 30px 70px rgba(0,0,0,.35);
+    }
+
+    .card h2{
+      margin-bottom:14px;
+      font-size:1.35rem;
+      color:var(--primary);
+    }
+
+    .card p{
+      margin-bottom:14px;
+      color:var(--text);
+      font-size:.98rem;
+    }
+
+    .btn,
+    .card button,
+    .login-box button,
+    .admin-box button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.5rem;
+      padding:12px 20px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:600;
+      transition:transform var(--transition), background var(--transition), box-shadow var(--transition);
+    }
+
+    .button-primary{
+      background:linear-gradient(135deg, var(--primary), var(--accent));
+      color:#fff;
+      box-shadow:0 16px 30px rgba(56,139,248,.2);
+    }
+
+    .button-primary:hover,
+    .button-primary:focus-visible{
+      transform:translateY(-1px);
+      box-shadow:0 20px 40px rgba(56,139,248,.3);
+      outline:none;
+    }
+
+    .hero{
+      grid-column:1/-1;
+      padding:80px 20px 40px;
+      display:grid;
+      gap:32px;
+      text-align:center;
+    }
+
+    .hero-copy{
+      max-width:900px;
+      margin-inline:auto;
+    }
+
+    .hero .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      margin-bottom:1.5rem;
+      font-size:.95rem;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:var(--primary);
+    }
+
+    .hero h1{
+      font-size:clamp(2.75rem, 6vw, 4.25rem);
+      margin-bottom:18px;
+      color:var(--primary);
+      line-height:1.05;
+    }
+
+    .hero p{
+      color:var(--muted);
+      font-size:1.05rem;
+      max-width:760px;
+      margin-inline:auto;
+      line-height:1.8;
+    }
+
+    .hero-buttons{
+      margin-top:28px;
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:14px;
+    }
+
+    .feature-grid,
+    .grid-card-section{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:18px;
+      margin-top:12px;
+    }
+
+    .feature-card{
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:18px;
+      padding:22px;
+      min-height:160px;
+    }
+
+    .feature-card h3{
+      margin-bottom:10px;
+      color:#fff;
+      font-size:1rem;
+    }
+
+    .feature-card p{
+      color:var(--muted);
+      font-size:.95rem;
+      line-height:1.7;
+    }
+
+    .login-box,
+    .admin-box{
+      max-width:440px;
+      width:100%;
+      margin:auto;
+      background:rgba(17,22,34,.95);
+      padding:32px;
+      border-radius:var(--radius);
+      border:1px solid rgba(255,255,255,.06);
+      box-shadow:var(--shadow);
+    }
+
+    .login-box input,
+    .admin-box input{
+      width:100%;
+      margin-bottom:16px;
+      padding:14px 16px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+    }
+
+    .login-box input:focus,
+    .admin-box input:focus{
+      outline:none;
+      border-color:rgba(88,166,255,.4);
+      background:rgba(255,255,255,.08);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      background:rgba(56,139,248,.12);
+      padding:.55rem .95rem;
+      border-radius:999px;
+      font-size:.8rem;
+      color:var(--primary);
+      margin-bottom:14px;
+      letter-spacing:.02em;
+    }
+
+    .section-title{
+      margin-bottom:24px;
+      font-size:1.6rem;
+      color:#f8fafc;
+    }
+
+    .footer{
+      margin-top:50px;
+      padding:30px 28px;
+      text-align:center;
+      color:var(--muted);
+      border-top:1px solid rgba(255,255,255,.06);
+      font-size:.95rem;
+    }
+
+    @media(max-width:768px){
+      .navbar{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .top-bar{
+        flex-direction:column;
+      }
+      #app{
+        padding:24px 18px;
+      }
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <header>
+
+    <nav class="navbar">
+
+      <div class="logo">
+        ZerodayFORGE
+      </div>
+
+      <div class="nav-links">
+
+        <button type="button" onclick="loadPage('home')">
+          Home
+        </button>
+
+        <button type="button" onclick="loadPage('tools')">
+          Tools
+        </button>
+
+        <button type="button" onclick="loadPage('labs')">
+          Labs
+        </button>
+
+        <button type="button" onclick="loadPage('writeups')">
+          Research
+        </button>
+
+        <button type="button" onclick="loadPage('login')">
+          Login
+        </button>
+
+        <button type="button" onclick="loadPage('admin')">
+          Admin
+        </button>
+
+      </div>
+
+    </nav>
+
+    <section class="top-bar">
+
+      <input
+        type="text"
+        id="search"
+        placeholder="Search tools, writeups or tools..."
+        aria-label="Search tools"
+      >
+
+      <select id="category" aria-label="Filter category">
+
+      <option value="all">
+        All Categories
+      </option>
+
+      <option value="Web">
+        Web Security
+      </option>
+
+      <option value="Network">
+        Network Security
+      </option>
+
+      <option value="Malware">
+        Malware Analysis
+      </option>
+
+    </select>
+
+    </section>
+
+  </header>
+
+  <main id="app"></main>
+
+  <footer class="footer">
+
+    ZerodayFORGE Security Platform © 2026
+
+  </footer>
+
+  <script>
+
+    // ====================================
+
+    const SUPABASE_URL =
+    window.SUPABASE_URL || "https://YOUR_PROJECT.supabase.co";
+
+    const SUPABASE_ANON_KEY =
+    window.SUPABASE_ANON_KEY || "YOUR_PUBLIC_ANON_KEY";
+
+    const client =
+    supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    // ====================================
+    // APP ROOT
+    // ====================================
+
+    const app =
+    document.getElementById("app");
+
+    // ====================================
+    // RENDER TOOLS
+    // ====================================
+
+    function renderTools(data){
+
+      app.innerHTML = "";
+
+      if(!data || data.length === 0){
+        app.innerHTML = "<p style='text-align:center; padding:20px;'>No tools found</p>";
+        return;
+      }
+
+      data.forEach(tool=>{
+
+        app.innerHTML += `
+
+          <div class="card">
+
+            <div class="badge">
+              ${tool.category}
+            </div>
+
+            <h2>
+              ${tool.title}
+            </h2>
+
+            <p>
+              Version:
+              ${tool.version}
+            </p>
+
+            <p>
+              Downloads:
+              ${tool.downloads}
+            </p>
+
+            <button type="button" class="button-primary"
+              onclick="downloadTool(${tool.id})"
+            >
+              Download
+            </button>
+
+          </div>
+
+        `;
+      });
+    }
+
+    // ====================================
+    // LOAD TOOLS FROM DATABASE
+    // ====================================
+
+    async function loadTools(){
+
+      const { data,error } =
+      await client
+      .from("tools")
+      .select("*");
+
+      if(error){
+
+        console.log(error);
+
+        return;
+      }
+
+      renderTools(data);
+    }
+
+    // ====================================
+    // PAGE ROUTER
+    // ====================================
+
+    function loadPage(page){
+
+      // HOME
+
+      if(page==="home"){
+
+        app.innerHTML = `
+
+          <section class="hero">
+
+            <div class="hero-copy">
+
+              <div class="eyebrow">
+                Offensive Security • Research • Labs • Intelligence
+              </div>
+
+              <h1>
+                Master Offensive Security Through Real-World Labs & Research
+              </h1>
+
+              <p>
+                Interactive cybersecurity labs, penetration testing tools, exploit research, secure coding practices, and modern threat intelligence — all in one platform.
+              </p>
+
+              <div class="hero-buttons">
+                <button type="button" class="button-primary" onclick="loadPage('tools')">Explore Tools</button>
+                <button type="button" class="button-primary" onclick="loadPage('labs')">Launch Labs</button>
+                <button type="button" class="button-primary" onclick="loadPage('writeups')">Read Research</button>
+                <button type="button" class="button-primary" onclick="loadPage('login')">Start Learning</button>
+              </div>
+
+            </div>
+
+            <div class="feature-grid">
+
+              <div class="feature-card">
+                <h3>Real-world attack simulations</h3>
+                <p>Practice with scenarios built around actual vulnerabilities and exploit workflows.</p>
+              </div>
+
+              <div class="feature-card">
+                <h3>Browser-based hacking labs</h3>
+                <p>Access safe environments for XSS, SQLi, SSRF, API security, and privilege escalation practice.</p>
+              </div>
+
+              <div class="feature-card">
+                <h3>Payload & toolkit library</h3>
+                <p>Browse payload collections, tools, and secure development utilities for modern pentesting.</p>
+              </div>
+
+              <div class="feature-card">
+                <h3>Threat intelligence insights</h3>
+                <p>Monitor CVE trends, exploit activity, and attack surface analytics in one central dashboard.</p>
+              </div>
+
+            </div>
+
+          </section>
+
+        `;
+      }
+
+      // TOOLS
+
+      if(page==="tools"){
+
+        loadTools();
+      }
+
+      // WRITEUPS
+
+      if(page==="writeups"){
+
+        app.innerHTML = `
+
+          <div class="card">
+
+            <div class="badge">
+              Writeup
+            </div>
+
+            <h2>
+              Stored XSS Analysis
+            </h2>
+
+            <p>
+              Deep analysis of
+              XSS exploitation.
+            </p>
+
+            <button type="button" class="button-primary">
+              Read More
+            </button>
+
+          </div>
+
+        `;
+      }
+
+      // LABS
+
+      if(page==="labs"){
+
+        app.innerHTML = `
+
+          <section class="grid-card-section">
+
+            <div class="feature-card">
+              <h3>Web Application Security</h3>
+              <p>Hands-on labs for SQLi, XSS, SSRF, IDOR, JWT flaws, and authentication bypass.</p>
+            </div>
+
+            <div class="feature-card">
+              <h3>API Security</h3>
+              <p>Practice broken auth, BOLA, JWT manipulation, rate limit bypass, and GraphQL security.</p>
+            </div>
+
+            <div class="feature-card">
+              <h3>Network Security</h3>
+              <p>Simulate port scanning, packet analysis, firewall misconfigurations, and DNS attack chains.</p>
+            </div>
+
+            <div class="feature-card">
+              <h3>Privilege Escalation</h3>
+              <p>Explore Linux SUID, cron abuse, PATH hijacking, kernel exploit paths, and container escapes.</p>
+            </div>
+
+            <div class="feature-card">
+              <h3>Cloud Security</h3>
+              <p>Learn S3 exposure, IAM escalation, metadata abuse, and cloud storage misconfiguration attacks.</p>
+            </div>
+
+          </section>
+
+        `;
+      }
+
+      // LOGIN
+
+      if(page==="login"){
+
+        app.innerHTML = `
+
+          <div class="login-box">
+
+            <h2 class="section-title">
+              Login
+            </h2>
+
+            <input
+              id="email"
+              type="email"
+              placeholder="Email"
+            >
+
+            <input
+              id="password"
+              type="password"
+              placeholder="Password"
+            >
+
+            <button type="button" class="button-primary" onclick="login()">
+              Login
+            </button>
+
+          </div>
+
+        `;
+      }
+
+      // ADMIN
+
+      if(page==="admin"){
+
+        app.innerHTML = `
+
+          <div class="admin-box">
+
+            <h2 class="section-title">
+              Upload Tool
+            </h2>
+
+            <input
+              id="toolName"
+              placeholder="Tool Name"
+            >
+
+            <input
+              id="toolVersion"
+              placeholder="Version"
+            >
+
+            <input
+              id="toolCategory"
+              placeholder="Category"
+            >
+
+            <button type="button" class="button-primary" onclick="uploadTool()">
+              Upload
+            </button>
+
+          </div>
+
+        `;
+      }
+    }
+
+    // ====================================
+    // LOGIN
+    // ====================================
+
+    async function login(){
+
+      const email =
+      document.getElementById("email").value;
+
+      const password =
+      document.getElementById("password").value;
+
+      const { error } =
+      await client.auth
+      .signInWithPassword({
+
+        email,
+        password
+
+      });
+
+      if(error){
+
+        alert(error.message);
+
+        return;
+      }
+
+      alert("Login success");
+    }
+
+    // ====================================
+    // UPLOAD TOOL
+    // ====================================
+
+    async function uploadTool(){
+
+      const title =
+      document.getElementById("toolName").value;
+
+      const version =
+      document.getElementById("toolVersion").value;
+
+      const category =
+      document.getElementById("toolCategory").value;
+
+      if(!title || !version || !category){
+        alert("All fields are required");
+        return;
+      }
+
+      const { error } =
+      await client
+      .from("tools")
+      .insert([{
+
+        title,
+        version,
+        category,
+        downloads:0
+
+      }]);
+
+      if(error){
+
+        alert(error.message);
+
+        return;
+      }
+
+      alert("Tool uploaded");
+
+      loadTools();
+    }
+
+    // ====================================
+    // DOWNLOAD COUNTER
+    // ====================================
+
+    async function downloadTool(id){
+
+      const { data } =
+      await client
+      .from("tools")
+      .select("downloads")
+      .eq("id",id)
+      .single();
+
+      await client
+      .from("tools")
+      .update({
+
+        downloads:
+        data.downloads + 1
+
+      })
+      .eq("id",id);
+
+      alert("Download started");
+    }
+
+    // ====================================
+    // SEARCH
+    // ====================================
+
+    document
+    .getElementById("search")
+    .addEventListener("input",
+    async e=>{
+
+      const value =
+      e.target.value;
+
+      if(!value){
+        loadTools();
+        return;
+      }
+
+      const { data, error } =
+      await client
+      .from("tools")
+      .select("*")
+      .ilike("title",`%${value}%`);
+
+      if(error){
+        console.log(error);
+        return;
+      }
+
+      renderTools(data);
+
+    });
+
+    // ====================================
+    // CATEGORY FILTER
+    // ====================================
+
+    document
+    .getElementById("category")
+    .addEventListener("change",
+    async e=>{
+
+      const value =
+      e.target.value;
+
+      if(value==="all"){
+
+        loadTools();
+
+        return;
+      }
+
+      const { data, error } =
+      await client
+      .from("tools")
+      .select("*")
+      .eq("category",value);
+
+      if(error){
+        console.log(error);
+        return;
+      }
+
+      renderTools(data);
+
+    });
+
+    // ====================================
+    // START
+    // ====================================
+
+    loadPage("home");
+
+  </script>
+
+</body>
+
+</html>
